@@ -6,4 +6,3 @@
 
 . ./start-spark.sh
 
-
