@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[ $# -lt 2 ] && printf "\nTwo arguments needed: Zookeeper address and the Kafka topic name\n\n" && exit 1
+#[ $# -lt 2 ] && printf "\nTwo arguments needed: Zookeeper address and the Kafka topic name\n\n" && exit 1
 
 cntrunning=`docker ps | grep sia-dashboard | awk '{print $2}'`
 [ "$cntrunning" == "sia-dashboard" ] && echo "sia-dashboard already running" && exit 1
@@ -13,5 +13,5 @@ then
 	cd ..
 fi
 
-docker run -d -p `hostname -i`:80:9080 -v /etc/localtime:/etc/localtime:ro -e "ZKADDR="$1 -e "TOPIC="$2 sia-dashboard
+docker run -d -p 192.168.10.2:80:9080 -v /etc/localtime:/etc/localtime:ro -e "ZKADDR=192.168.10.2:2181" -e "TOPIC=stats" sia-dashboard
 

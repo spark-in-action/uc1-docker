@@ -1,13 +1,31 @@
 #!/bin/bash
-
-docker run -d -v /etc/localtime:/etc/localtime:ro --name sia-zookeeper jplock/zookeeper:3.4.6
+Z=`ps -ef | grep zookeeper.properties | grep -v grep | awk '{print $2}'`
+if [ "$Z" == "" ]; then
+	echo Starting Zookeeper
+	/usr/local/kafka/bin/zookeeper-server-start.sh /usr/local/kafka/config/zookeeper.properties &
+else
+	echo Zookeeper already started
+fi
 sleep 3
-docker run -d -v /etc/localtime:/etc/localtime:ro --name sia-kafka --link sia-zookeeper:zookeeper ches/kafka
+K=`ps -ef | grep kafka | grep server.properties | grep -v grep | awk '{print $2}'`
+if [ "$K" == "" ]; then
+	echo Starting Kafka
+	/usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server.properties &
+else
+	echo Kafka already started
+fi
 
-export ZK_IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' sia-zookeeper)
-export KAFKA_IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' sia-kafka)
+sleep 3
+T=`/usr/local/kafka/bin/kafka-topics.sh --list --zookeeper localhost:2181 | grep weblogs`
+if [ "$T" == "" ]; then
+	echo Creating weblogs topic
+	/usr/local/kafka/bin/kafka-topics.sh --create --topic weblogs --replication-factor 1 --partitions 1 --zookeeper 192.168.10.2:2181
+fi
+T=`/usr/local/kafka/bin/kafka-topics.sh --list --zookeeper localhost:2181 | grep stats`
+if [ "$T" == "" ]; then
+	echo Creating stats topic
+	/usr/local/kafka/bin/kafka-topics.sh --create --topic stats --replication-factor 1 --partitions 1 --zookeeper 192.168.10.2:2181
+fi
 
-sleep 5
-docker run --rm ches/kafka kafka-topics.sh --create --topic weblogs --replication-factor 1 --partitions 1 --zookeeper $ZK_IP:2181
-docker run --rm ches/kafka kafka-topics.sh --create --topic stats --replication-factor 1 --partitions 1 --zookeeper $ZK_IP:2181
+
 
