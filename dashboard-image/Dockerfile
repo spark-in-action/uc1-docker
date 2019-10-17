@@ -1,6 +1,10 @@
 
 FROM websphere-liberty:webProfile7
 
+USER root
+RUN apt-get update
+RUN apt -y install wget
+
 RUN installUtility install --acceptLicense defaultServer websocket-1.0
 
 RUN wget -O - https://github.com/spark-in-action/first-edition/releases/download/dashboard/WebStatsDashboard.war > /opt/ibm/wlp/usr/servers/defaultServer/dropins/WebStatsDashboard.war
